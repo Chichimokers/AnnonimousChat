@@ -1,0 +1,10 @@
+{
+
+	"dependencies": {
+		"http": "0.0.1-security",
+		"ws": "^8.18.2"
+	},
+	"devDependencies": {
+		"@types/ws": "^8.18.1"
+	}
+}
