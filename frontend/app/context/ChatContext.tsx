@@ -42,7 +42,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     
     }
 
-    const socket = new WebSocket('ws://esaki-jrr.com:3001');
+    const socket = new WebSocket('ws://167.99.238.54:3001');
     socketRef.current = socket;
 
     socket.onopen = () => {
