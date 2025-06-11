@@ -22,7 +22,10 @@ export default function MessageBubble({
             maxWidth: '60%',
             wordWrap: 'break-word',
           }}
-        >
+
+        > 
+   
+
           <div style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: 2 }}>
             {isMine ? 'Tú' : sender}
           </div>

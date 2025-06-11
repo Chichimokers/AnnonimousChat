@@ -1,69 +1,66 @@
 import { WebSocket, WebSocketServer } from 'ws';
+
 interface Client {
   socket: WebSocket;
   username?: string | null;
-  ip?:string| null;
-  partner?: Client; // mejor referenciar al objeto Client completo
+  ip?: string | null;
+  partner?: Client;
 }
 
 const wss = new WebSocketServer({ port: 3001 });
-
 const waitingQueue: Client[] = [];
 
 wss.on('connection', (socket: WebSocket) => {
-  const ip = (socket as any)._socket.remoteAddress as string;
+  const ip = (socket as any)._socket?.remoteAddress ?? null;
   const client: Client = { socket, ip };
 
-  // Intentar emparejar
-  if (waitingQueue.length > 0) {
-    const partner = waitingQueue.shift()!;
-    client.partner = partner;
-    partner.partner = client;
+  // Mensajes entrantes
+  socket.on('message', (message) => {
+    try {
+      const data = JSON.parse(message.toString());
+      console.log('Mensaje recibido:', data);
 
-    client.socket.send(JSON.stringify({ type: 'paired',  paired:partner.username }));
+      // Cuando el cliente envía su username
+      if (data.type === "username") {
+        client.username = data.username;
+        console.log(`Username asignado: ${client.username}`);
 
-    partner.socket.send(JSON.stringify({ type: 'paired', paired:client.username }));
+        // Ahora sí: intentamos emparejar
+        if (waitingQueue.length > 0) {
+          const partner = waitingQueue.shift()!;
+          client.partner = partner;
+          partner.partner = client;
 
-  } else {
-    waitingQueue.push(client);
-    client.socket.send(JSON.stringify({ type: 'waiting' }));
-  }
-
-  socket.on('message', (message: string | Buffer | ArrayBuffer | Buffer[]) => {
-    console.log(JSON.parse(message.toString()));
-    const mensajejson = JSON.parse(message.toString());
-    
-    if (mensajejson.type === "username") {
-      // Obtener la IP real del socket
-      const ip = (socket as any)._socket.remoteAddress as string;
-    
-      waitingQueue.forEach((client) => {
-        if (client.ip === ip) {
-          console.log('IP encontrada:', client.ip);
-    
-          // Asignar username correctamente (usar = para asignar)
-          client.username = mensajejson.username;
-    
-          console.log('Username asignado:', client.username);
+          // Enviar nombre de la pareja a ambos
+          client.socket.send(JSON.stringify({ type: 'paired', paired: partner.username }));
+          partner.socket.send(JSON.stringify({ type: 'paired', paired: client.username }));
+        } else {
+          // No hay pareja, se agrega a la cola
+          waitingQueue.push(client);
+          client.socket.send(JSON.stringify({ type: 'waiting' }));
         }
-      });
-    }
+        return; // Ya manejamos este mensaje
+      }
 
-    // Reenviar mensaje al partner si está conectado y abierto
-    if (client.partner && client.partner.socket.readyState === WebSocket.OPEN) {
-      // message puede ser Buffer, string o ArrayBuffer, aquí lo enviamos tal cual
-      client.partner.socket.send(message);
+      // Si tiene pareja, reenviar mensajes
+      if (client.partner && client.partner.socket.readyState === WebSocket.OPEN) {
+        client.partner.socket.send(message);
+        console.log('mensje enviado',message)
+      }
+
+    } catch (err) {
+      console.error('Error al parsear mensaje:', err);
     }
   });
 
   socket.on('close', () => {
-    // Si estaba en espera, removerlo
+    // Quitar de la cola si estaba esperando
     const index = waitingQueue.findIndex(c => c.socket === socket);
     if (index !== -1) {
       waitingQueue.splice(index, 1);
     }
 
-    // Notificar y desconectar partner si existía
+    // Notificar a la pareja y cerrarle
     if (client.partner && client.partner.socket.readyState === WebSocket.OPEN) {
       client.partner.socket.send(JSON.stringify({ type: 'partner-disconnected' }));
       client.partner.socket.close();

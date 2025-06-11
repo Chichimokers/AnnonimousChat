@@ -57,7 +57,7 @@ const ChatProvider = ({ children })=>{
                 localStorage.setItem('anon-name', newName);
                 setusername(newName);
             }
-            const socket = new WebSocket('ws://localhost:3001');
+            const socket = new WebSocket('ws://192.168.42.109:3001');
             socketRef.current = socket;
             socket.onopen = ({
                 "ChatProvider.useEffect": ()=>{
@@ -65,23 +65,32 @@ const ChatProvider = ({ children })=>{
                 }
             })["ChatProvider.useEffect"];
             socket.onmessage = ({
-                "ChatProvider.useEffect": (event)=>{
+                "ChatProvider.useEffect": async (event)=>{
+                    let textData = '';
+                    if (event.data instanceof Blob) {
+                        // Convertir Blob a texto
+                        textData = await event.data.text();
+                    } else if (typeof event.data === 'string') {
+                        textData = event.data;
+                    } else {
+                        // Por si acaso viene otro tipo de dato
+                        textData = JSON.stringify(event.data);
+                    }
                     try {
-                        const data = JSON.parse(event.data);
+                        const data = JSON.parse(textData);
                         switch(data.type){
                             case 'waiting':
                                 setStatus('waiting');
                                 break;
                             case 'paired':
-                                setpair(data.paired);
                                 setStatus('paired');
+                                setpair(data.paired);
                                 break;
                             case 'partner-disconnected':
                                 setStatus('partnerDisconnected');
                                 alert('Tu pareja se desconectó.');
                                 break;
                             default:
-                                // Asumimos que data es un mensaje de chat con sender y text
                                 if (data.sender && data.text) {
                                     setMessages({
                                         "ChatProvider.useEffect": (msgs)=>[
@@ -95,13 +104,13 @@ const ChatProvider = ({ children })=>{
                                 }
                         }
                     } catch  {
-                        // Si no es JSON, puede ser un mensaje simple, lo tratamos como texto de otro usuario
+                        // Si no es JSON, se asume texto plano
                         setMessages({
                             "ChatProvider.useEffect": (msgs)=>[
                                     ...msgs,
                                     {
                                         sender: 'Pareja',
-                                        text: event.data
+                                        text: textData
                                     }
                                 ]
                         }["ChatProvider.useEffect"]);
@@ -134,18 +143,18 @@ const ChatProvider = ({ children })=>{
         isSocketOpen,
         userName
     ]);
-    const sendMessage = ()=>{
-        if (status === 'paired' && input.trim() !== '') {
+    const sendMessage = (text)=>{
+        if (status === 'paired' && text.trim().toString() !== '') {
             const messageObj = {
                 sender: userName,
-                text: input
+                text: text
             };
             socketRef.current?.send(JSON.stringify(messageObj));
             setMessages((msgs)=>[
                     ...msgs,
                     {
                         sender: 'Yo',
-                        text: input
+                        text: text
                     }
                 ]);
             setInput('');
@@ -162,7 +171,7 @@ const ChatProvider = ({ children })=>{
         children: children
     }, void 0, false, {
         fileName: "[project]/app/context/ChatContext.tsx",
-        lineNumber: 109,
+        lineNumber: 124,
         columnNumber: 5
     }, this);
 };

@@ -42,7 +42,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     
     }
 
-    const socket = new WebSocket('ws://localhost:3001');
+    const socket = new WebSocket('ws://esaki-jrr.com:3001');
     socketRef.current = socket;
 
     socket.onopen = () => {
@@ -50,33 +50,46 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
     };
 
-    socket.onmessage = (event) => {
+    socket.onmessage = async (event) => {
+      let textData = '';
+    
+      if (event.data instanceof Blob) {
+        // Convertir Blob a texto
+        textData = await event.data.text();
+      } else if (typeof event.data === 'string') {
+        textData = event.data;
+      } else {
+        // Por si acaso viene otro tipo de dato
+        textData = JSON.stringify(event.data);
+      }
+    
       try {
-        
-        const data = JSON.parse(event.data);
+        const data = JSON.parse(textData);
+    
         switch (data.type) {
           case 'waiting':
             setStatus('waiting');
             break;
           case 'paired':
-            setpair(data.paired)
             setStatus('paired');
+            setpair(data.paired);
+           
             break;
           case 'partner-disconnected':
             setStatus('partnerDisconnected');
             alert('Tu pareja se desconectó.');
             break;
           default:
-            // Asumimos que data es un mensaje de chat con sender y text
             if (data.sender && data.text) {
               setMessages((msgs) => [...msgs, { sender: data.sender, text: data.text }]);
             }
         }
       } catch {
-        // Si no es JSON, puede ser un mensaje simple, lo tratamos como texto de otro usuario
-        setMessages((msgs) => [...msgs, { sender: 'Pareja', text: event.data }]);
+        // Si no es JSON, se asume texto plano
+        setMessages((msgs) => [...msgs, { sender: 'Pareja', text: textData }]);
       }
     };
+    
 
     socket.onclose = () => {
       alert('Conexión cerrada.');
@@ -96,12 +109,14 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isSocketOpen, userName]);
 
-  const sendMessage = () => {
-    if (status === 'paired' && input.trim() !== '') {
-      const messageObj = { sender: userName, text: input };
+  const sendMessage = (text: string) => {
+
+    if (status === 'paired' && text.trim().toString() !== '') {
+      const messageObj = { sender: userName, text: text };
       socketRef.current?.send(JSON.stringify(messageObj));
-      setMessages((msgs) => [...msgs, { sender: 'Yo', text: input }]);
+      setMessages((msgs) => [...msgs, { sender: 'Yo', text: text }]);
       setInput('');
+      
     }
   };
 

@@ -31,7 +31,7 @@ export default function ChatWindow() {
       {status == "waiting" ? (
       <p>Esperando por pareja</p>
      ):(
-      <h1>Tu pareja es {pair}</h1>
+      <p>Tu pareja es {pair}</p>
        )}
     </h1>
 
@@ -44,11 +44,12 @@ export default function ChatWindow() {
       borderRadius: '12px',
     }}>
       {messages.map((msg, i) => (
+ 
         <MessageBubble
           key={i}
           sender={msg.sender}
           text={msg.text}
-          isMine={msg.sender === userName}
+          isMine={msg.sender === 'Yo'}
         />
       ))}
     </div>
