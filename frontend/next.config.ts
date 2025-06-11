@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  /* config options here */
-
-  allowedDevOrigins:["167.99.238.54","esaki-jrr.com"]
+const nextConfig = {
+  basePath: '/chat',
+  assetPrefix: '/chat/',
 };
-
 export default nextConfig;
