@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///D:/Proyectos/ChatAnonimo/frontend/app/layout.tsx"],"sourcesContent":["import './globals.css';\n\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html lang=\"es\">\n      <body>\n        <ChatProvider>\n          {children}\n        </ChatProvider>\n      </body>\n    </html>\n  );\n}\n"],"names":[],"mappings":";;;;;;AAGe,SAAS,WAAW,EAAE,QAAQ,EAAiC;IAC5E,qBACE,6WAAC;QAAK,MAAK;kBACT,cAAA,6WAAC;sBACC,cAAA,6WAAC;0BACE;;;;;;;;;;;;;;;;AAKX","debugId":null}},
+    {"offset": {"line": 40, "column": 0}, "map": {"version":3,"sources":["file:///D:/Proyectos/ChatAnonimo/frontend/node_modules/.pnpm/next%4015.3.3_react-dom%4019.1.0_react%4019.1.0__react%4019.1.0/node_modules/next/src/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.ts"],"sourcesContent":["module.exports = require('../../module.compiled').vendored[\n  'react-rsc'\n].ReactJsxDevRuntime\n"],"names":["module","exports","require","vendored","ReactJsxDevRuntime"],"mappings":";AAAAA,OAAOC,OAAO,GAAGC,QAAQ,uMAAyBC,QAAQ,CACxD,YACD,CAACC,kBAAkB","ignoreList":[0],"debugId":null}}]
+}
